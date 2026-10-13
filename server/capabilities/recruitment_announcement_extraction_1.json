@@ -1,0 +1,58 @@
+{
+  "id": "recruitment_announcement_extraction_1",
+  "pluginKey": "@official-plugins/ai-text-to-json",
+  "pluginVersion": "1.0.26",
+  "name": "招聘公告结构化信息提取",
+  "description": "从招聘公告正文中提取总招聘人数、岗位明细、通用报考条件、报名起止日期等结构化信息",
+  "icon": "",
+  "paramsSchema": {
+    "properties": {
+      "recruitment_content": {
+        "type": "string",
+        "description": "招聘公告正文内容"
+      }
+    },
+    "required": [
+      "recruitment_content"
+    ],
+    "type": "object"
+  },
+  "formValue": {
+    "modelID": "2015",
+    "modelParams": {
+      "maxTokens": 8192,
+      "temperature": 0.5
+    },
+    "prompt": "你是一位专业的招聘信息提取专家，请从以下招聘公告正文中准确提取所需的结构化信息，未找到的字段请返回对应类型的默认值（字符串为空字符串、数字类型未找到请填0、数组为空数组），绝对不得编造不存在的信息。\n\n招聘公告正文：\n{{input.recruitment_content}}\n\n提取要求：\n1. 总招聘人数提取规则：仅提取包含「招聘/拟招/招录 X 名/人」格式的数字，排除满分、百分比、权重、日期、年龄、电话、编号序号等其他场景的数字；若没有明确总人数则统计所有岗位招聘人数之和\n2. 岗位名称提取规则：必须是真实的岗位名称，排除报名、报名程序、大学本科及以上学历学位等流程性或资格条件类文字\n3. 通用报考条件单独归入generalConditions字段，提取公告中适用于所有岗位的统一报考要求，未找到则返回空字符串\n4. 岗位明细中的每个岗位需完整提取名称、招聘人数、专业要求、学历要求、岗位职责、其他资格条件，未找到的子字段返回空字符串\n5. 报名时间提取规则：需识别中文公告里各种写法，包括全角/半角冒号、至/到/~连接、起止日期（如2026年6月8日至6月12日、6月8日~6月12日、即日起至X月X日），省略年份的结束日期需补全为开始日期同年，统一输出为YYYY-MM-DD格式。如果原文是长期招聘/招满即止/长期有效等无明确截止日期的表述，applyDeadline返回空字符串\n6. 所有不确定的字段一律返回对应类型的默认值，不得编造任何信息",
+    "jsonStructure": [
+      {
+        "name": "totalCount",
+        "paramType": "Number",
+        "paramDescription": "总招聘人数"
+      },
+      {
+        "paramDescription": "通用报考条件，适用于所有岗位的报考要求",
+        "name": "generalConditions",
+        "paramType": "String"
+      },
+      {
+        "paramDescription": "报名开始日期，格式YYYY-MM-DD，未找到返回空字符串",
+        "name": "applyStartDate",
+        "paramType": "String"
+      },
+      {
+        "paramDescription": "报名截止日期，格式YYYY-MM-DD，未找到或无明确截止日期返回空字符串",
+        "name": "applyDeadline",
+        "paramType": "String"
+      },
+      {
+        "paramDescription": "岗位明细列表，items schema: {name: string(岗位名称), count: string(招聘人数), major: string(专业要求), education: string(学历要求), responsibility: string(岗位职责), otherRequirements: string(其他资格条件)}",
+        "name": "positions",
+        "paramType": "Array"
+      }
+    ]
+  },
+  "createdAt": 1791460973743,
+  "updatedAt": 1791463380562,
+  "createdBy": 7576436768090672356
+}
